@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'shop/style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="row">
+            <div class="col-md-12">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <a class="navbar-brand" href="#">Navbar</a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                      <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Features</a>
+                            </li>
+                            <li class="nav-item">
+                                <button id="cart" type="button" class="btn btn-secondary" data-html="true" data-container="body" data-toggle="popover" data-placement="bottom" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus.">
+                                    Cart (0)
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link disabled" href="#">Disabled</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-sm">
+                    <form class="card-body row no-gutters align-items-center">
+                        <div class="col">
+                            <input type="search" name="item_name" placeholder="Search for Products" class="form-control form-control-borderless">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-success">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="{{ product.image }}" class="card-img-top">
+                    <div class="card-body">
+                        <!-- removed blank space for title because it was registering in the local storage -->
+                        <div id="nm{{ product.id }}" class="card-title">{{ product.title }}</div>
+
+                        <div id="pr{{ product.id }}" class="card-text">$ {{ product.price }}</div>
+
+                        <a href="/{{ product.id }}" class="btn btn-warning">View</a>
+                        <button id="{{ product.id }}" class="btn btn-warning atc">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <ul class="pagination">
+                    {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %} {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script type="text/javascript">
+    if (localStorage.getItem('cart') == null) {
+        var cart = {};
+    } else {
+        cart = JSON.parse(localStorage.getItem('cart'));
+    }
+
+    $(document).on('click', '.atc', (e) => {
+        console.log("Add to cart button works.");
+        let id = e.target.id.toString();
+        if (cart[id] != undefined) {
+            cart[id][0] = cart[id][0] + 1;
+            let editPrice = document.getElementById(`pr${id}`).innerHTML;
+            editPrice = parseFloat(editPrice.slice(2, editPrice.length));
+            cart[id][2] += editPrice;
+        } else {
+            let name = document.getElementById("nm" + id).innerHTML;
+            let editPrice = document.getElementById(`pr${id}`).innerHTML;
+            editPrice = parseFloat(editPrice.slice(2, editPrice.length));
+            cart[id] = [1, name, editPrice];
+        }
+        console.log(cart);
+        localStorage.setItem('cart', JSON.stringify(cart));
+
+        document.getElementById("cart").innerHTML = "Cart (" + Object.keys(cart).length + ")";
+        displayCart(cart);
+    })
+    displayCart(cart);
+    // $(function() {
+    //     $('[data-toggle="popover"]').popover();
+    //     // document.getElementById("cart").setAttribute("data-content", "works");
+    // })
+
+    function displayCart(cart) {
+        let cartString = "";
+
+        for (let i in cart) {
+            cartString += document.getElementById("nm" + i).innerHTML + ": " + cart[i][0] + "<br>";
+        }
+        cartString += "<a href='/checkout' id='checkout' class='btn btn-warning'>Checkout</a>"
+        document.getElementById("cart").setAttribute("data-content", cartString);
+        $('[data-toggle="popover"]').popover({
+            title: "Current Cart",
+        });
+    }
+</script>
+
+</html>
